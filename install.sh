@@ -24,8 +24,8 @@ echo -e "${NC}"
 
 # --- Menu ---
 echo "Select an option:"
-echo "0️⃣  Start existing Windows 10 container"
-echo "1️⃣  Install Windows 10"
+echo "0️⃣  install existing Windows 10 container"
+echo "1️⃣  Start Windows 10"
 echo "2️⃣  Install Windows 11"
 echo "3️⃣  Exit"
 echo ""
