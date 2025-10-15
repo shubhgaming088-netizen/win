@@ -24,51 +24,58 @@ echo -e "${NC}"
 
 # --- Menu ---
 echo "Select an option:"
+echo "0️⃣  Start existing Windows 10 container"
 echo "1️⃣  Install Windows 10"
 echo "2️⃣  Install Windows 11"
 echo "3️⃣  Exit"
 echo ""
-read -p "👉 Enter your choice (1-3): " choice
+read -p "👉 Enter your choice (0-3): " choice
 
 case $choice in
+0)
+echo -e "${CYAN}🚀 Starting existing Windows 10 container...${NC}"
+docker-compose -f windows10.yml up -d
+echo -e "${GREEN}✅ Windows 10 container started in background.${NC}"
+;;
+
 1)
 echo -e "${GREEN}⚙️ Starting Windows 10 installation...${NC}"
 sleep 1
 
-# --- 1️⃣ Check storage ---  
-echo "📦 Checking available storage..."  
+# --- 1️⃣ Check storage ---
+echo "📦 Checking available storage..."
 df -h | grep -E "Filesystem|/tmp|/home|/"
 sleep 1
 
-# --- 2️⃣ Create Docker data folder ---  
-DOCKER_DATA_DIR="/tmp/docker-data"  
-echo "📁 Creating Docker data folder in $DOCKER_DATA_DIR ..."  
-sudo mkdir -p "$DOCKER_DATA_DIR"  
+# --- 2️⃣ Create Docker data folder ---
+DOCKER_DATA_DIR="/tmp/docker-data"
+echo "📁 Creating Docker data folder in $DOCKER_DATA_DIR ..."
+sudo mkdir -p "$DOCKER_DATA_DIR"
 sudo chmod 777 "$DOCKER_DATA_DIR"
 
-# --- 3️⃣ Configure Docker ---  
-echo "⚙️ Setting Docker data-root..."  
-sudo mkdir -p /etc/docker  
+# --- 3️⃣ Configure Docker ---
+echo "⚙️ Setting Docker data-root..."
+sudo mkdir -p /etc/docker
 cat <<EOF | sudo tee /etc/docker/daemon.json >/dev/null
 {
   "data-root": "$DOCKER_DATA_DIR"
 }
 EOF
 
-# --- 4️⃣ Restart Docker ---  
-echo "🔁 Restarting Docker service..."  
+# --- 4️⃣ Restart Docker ---
+echo "🔁 Restarting Docker service..."
 sudo systemctl restart docker || echo "⚠️ Could not restart Docker. Make sure it is installed."
 
-# --- 5️⃣ Create .env ---  
-echo "🔐 Creating .env file..."  
+# --- 5️⃣ Create .env ---
+echo "🔐 Creating .env file..."
 cat <<EOF > .env
 WINDOWS_USERNAME=Deepak
 WINDOWS_PASSWORD=sankhla
 EOF
 echo ".env" >> .gitignore
 
-# --- 6️⃣ Create docker-compose file ---  
-echo "🪟 Creating windows10.yml..."  
+# --- 6️⃣ Create docker-compose file ---
+echo "🪟 Creating windows10.yml..."
 cat <<'EOF' > windows10.yml
 services:
   windows:
@@ -98,37 +105,34 @@ volumes:
   windows-data:
 EOF
 
-# --- 7️⃣ Verify Docker ---  
-echo "🧩 Checking Docker configuration..."  
+# --- 7️⃣ Verify Docker ---
+echo "🧩 Checking Docker configuration..."
 docker info | grep "Docker Root Dir" || echo "⚠️ Could not verify Docker root dir."
 
-# --- 8️⃣ Run container ---  
+# --- 8️⃣ Run container ---
 echo "🚀 Launching Windows 10 container..."
-# Run in foreground
 docker-compose -f windows10.yml up
-# If you want background, comment above line and uncomment below
-# docker-compose -f windows10.yml up -d
 
-# --- 9️⃣ Done ---  
-echo ""  
-echo -e "${GREEN}✅ Installation complete!${NC}"  
-echo "-------------------------------------------"  
-echo "🔹 Docker Root Dir: $DOCKER_DATA_DIR"  
-echo "🔹 Container: windows"  
-echo "🔹 Image: dockurr/windows (Windows 10)"  
-echo "🔹 Access via RDP -> Host: localhost | Port: 3389"  
-echo "🔹 User: Deepak | Password: sankhla"  
-echo "-------------------------------------------"  
-echo "🖥️ Use 'docker ps' to verify container status."  
+# --- 9️⃣ Done ---
+echo ""
+echo -e "${GREEN}✅ Installation complete!${NC}"
+echo "-------------------------------------------"
+echo "🔹 Docker Root Dir: $DOCKER_DATA_DIR"
+echo "🔹 Container: windows"
+echo "🔹 Image: dockurr/windows (Windows 10)"
+echo "🔹 Access via RDP -> Host: localhost | Port: 3389"
+echo "🔹 User: Deepak | Password: sankhla"
+echo "-------------------------------------------"
+echo "🖥️ Use 'docker ps' to verify container status."
 ;;
 
 2)
-echo -e "${RED}❌ Windows 11 installation is not available yet.${NC}"  
+echo -e "${RED}❌ Windows 11 installation is not available yet.${NC}"
 ;;
 
 3)
-echo -e "${YELLOW}👋 Exiting installer. Goodbye!${NC}"  
-exit 0  
+echo -e "${YELLOW}👋 Exiting installer. Goodbye!${NC}"
+exit 0
 ;;
 
 *)
