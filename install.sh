@@ -91,7 +91,7 @@ services:
     devices:
       - "/dev/kvm:/dev/kvm"
       - "/dev/net/tun:/dev/net/tun"
-    stop_grace_period: 2m
+    stop_grace_period: 6h
     restart: always
 
 volumes:
