@@ -17,15 +17,15 @@ NC='\033[0m' # No Color
 clear
 echo -e "${CYAN}"
 echo "=============================================="
-echo "        🪟 Windows Docker Installer"
+echo "        🥳 Windows Docker Installer 👈
 echo "            Made by Deepak"
 echo "=============================================="
 echo -e "${NC}"
 
 # --- Menu ---
 echo "Select an option:"
-echo "0️⃣  install existing Windows 10 container"
-echo "1️⃣  Start Windows 10"
+echo "0️⃣  Start existing Windows 10 container"
+echo "1️⃣  Install Windows 10"
 echo "2️⃣  Install Windows 11"
 echo "3️⃣  Exit"
 echo ""
@@ -109,13 +109,13 @@ EOF
 echo "🧩 Checking Docker configuration..."
 docker info | grep "Docker Root Dir" || echo "⚠️ Could not verify Docker root dir."
 
-# --- 8️⃣ Run container ---
-echo "🚀 Launching Windows 10 container..."
-docker-compose -f windows10.yml up
+# --- 8️⃣ Run container (background) ---
+echo "🚀 Launching Windows 10 container in background..."
+docker-compose -f windows10.yml up -d
 
 # --- 9️⃣ Done ---
 echo ""
-echo -e "${GREEN}✅ Installation complete!${NC}"
+echo -e "${GREEN}✅ Installation complete and container started!${NC}"
 echo "-------------------------------------------"
 echo "🔹 Docker Root Dir: $DOCKER_DATA_DIR"
 echo "🔹 Container: windows"
