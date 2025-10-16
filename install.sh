@@ -1,8 +1,9 @@
 #!/bin/bash
-# =====================================================
-# 🪟 Windows Setup Script for Docker (Codespace)
-# Made by Deepak 
-# =====================================================
+
+=====================================================
+🪟 Windows Setup Script for Docker (Codespace)
+Made by Deepak
+=====================================================
 
 set -e
 
@@ -27,74 +28,74 @@ echo "Select an option:"
 echo "1️⃣ Install Windows 10 (fresh & background start)"
 echo "2️⃣ Start existing Windows 10 container with backup"
 echo "3️⃣ Install Windows 11 (fresh & background start)"
-echo "4️⃣ Exit"
+echo "4️⃣ Install Windows 7 (fresh & background start)"
 echo ""
 read -p "👉 Enter your choice (1-4): " choice
 
 case $choice in
+
 # -------------------- OPTION 1 --------------------
 1)
-  echo -e "${CYAN}⚙️ Starting Windows 10 installation...${NC}"
-  sleep 1
+echo -e "${CYAN}⚙️ Starting Windows 10 installation...${NC}"
+sleep 1
 
-  # --- Update and install Docker ---
-  echo -e "${YELLOW}🔄 Updating system packages...${NC}"
-  sudo apt update -y
+# Update and install Docker
+echo -e "${YELLOW}🔄 Updating system packages...${NC}"
+sudo apt update -y
+echo -e "${YELLOW}🐳 Installing Docker and Docker Compose...${NC}"
+sudo apt install -y ca-certificates curl gnupg lsb-release
 
-  echo -e "${YELLOW}🐳 Installing Docker and Docker Compose...${NC}"
-  sudo apt install -y ca-certificates curl gnupg lsb-release
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-  sudo mkdir -p /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
+sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-  echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-    https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update -y
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
-  sudo apt update -y
-  sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+# Enable Docker service
+echo -e "${CYAN}🚀 Enabling Docker service...${NC}"
+sudo systemctl enable docker
+sudo systemctl start docker || echo "⚠️ Docker could not start automatically. Please check systemctl status docker."
 
-  # --- Enable Docker service ---
-  echo -e "${CYAN}🚀 Enabling Docker service...${NC}"
-  sudo systemctl enable docker
-  sudo systemctl start docker || echo "⚠️ Docker could not start automatically. Please check systemctl status docker."
+# Check storage
+echo -e "${BLUE}💾 Checking available storage...${NC}"
+df -h | grep -E "Filesystem|/tmp|/home|/"
+sleep 1
 
-  # --- Check storage ---
-  echo -e "${BLUE}💾 Checking available storage...${NC}"
-  df -h | grep -E "Filesystem|/tmp|/home|/"
-  sleep 1
+# Create Docker data folder
+DOCKER_DATA_DIR="/tmp/docker-data"
+echo -e "${BLUE}📂 Creating Docker data folder in $DOCKER_DATA_DIR ...${NC}"
+sudo mkdir -p "$DOCKER_DATA_DIR"
+sudo chmod 777 "$DOCKER_DATA_DIR"
 
-  # --- Create Docker data folder ---
-  DOCKER_DATA_DIR="/tmp/docker-data"
-  echo -e "${BLUE}📂 Creating Docker data folder in $DOCKER_DATA_DIR ...${NC}"
-  sudo mkdir -p "$DOCKER_DATA_DIR"
-  sudo chmod 777 "$DOCKER_DATA_DIR"
-
-  # --- Configure Docker daemon ---
-  echo -e "${CYAN}🛠 Setting Docker data-root...${NC}"
-  sudo mkdir -p /etc/docker
-  cat <<EOF | sudo tee /etc/docker/daemon.json >/dev/null
+# Configure Docker daemon
+echo -e "${CYAN}🛠 Setting Docker data-root...${NC}"
+sudo mkdir -p /etc/docker
+cat <<EOF | sudo tee /etc/docker/daemon.json >/dev/null
 {
-  "data-root": "$DOCKER_DATA_DIR"
+"data-root": "$DOCKER_DATA_DIR"
 }
 EOF
 
-  # --- Restart Docker ---
-  echo -e "${YELLOW}🔁 Restarting Docker service...${NC}"
-  sudo systemctl restart docker || echo "⚠️ Could not restart Docker. Make sure it is installed."
+# Restart Docker
+echo -e "${YELLOW}🔁 Restarting Docker service...${NC}"
+sudo systemctl restart docker || echo "⚠️ Could not restart Docker."
 
-  # --- Create .env ---
-  echo -e "${CYAN}⚙️ Creating .env file...${NC}"
-  cat <<EOF > .env
+# Create .env
+echo -e "${CYAN}⚙️ Creating .env file...${NC}"
+cat <<EOF > .env
 WINDOWS_USERNAME=Deepak
 WINDOWS_PASSWORD=sankhla
 EOF
-  echo ".env" >> .gitignore
+echo ".env" >> .gitignore
 
-  # --- Create docker-compose file ---
-  echo -e "${CYAN}📄 Creating windows10.yml...${NC}"
-  cat <<'EOF' > windows10.yml
+# Create docker-compose file
+echo -e "${CYAN}📄 Creating windows10.yml...${NC}"
+cat <<'EOF' > windows10.yml
 services:
   windows:
     image: dockurr/windows
@@ -122,76 +123,76 @@ volumes:
   windows10-data:
 EOF
 
-  # --- Verify Docker ---
-  echo -e "${BLUE}🔍 Checking Docker configuration...${NC}"
-  if ! command -v docker >/dev/null; then
-    echo -e "${RED}❌ Docker not found!${NC}"
-    exit 1
-  fi
-  docker info | grep "Docker Root Dir" || echo "⚠️ Could not verify Docker root dir."
+# Verify Docker
+echo -e "${BLUE}🔍 Checking Docker configuration...${NC}"
+if ! command -v docker >/dev/null; then
+  echo -e "${RED}❌ Docker not found!${NC}"
+  exit 1
+fi
+docker info | grep "Docker Root Dir" || echo "⚠️ Could not verify Docker root dir."
 
-  # --- Run container ---
-  echo -e "${GREEN}🚀 Launching Windows 10 container in background...${NC}"
-  docker compose -f windows10.yml up -d
+# Run container
+echo -e "${GREEN}🚀 Launching Windows 10 container in background...${NC}"
+docker compose -f windows10.yml up -d
 
-  echo ""
-  echo -e "${GREEN}✅ Windows 10 Installation complete!${NC}"
-  echo "-------------------------------------------"
-  echo " Docker Root Dir: $DOCKER_DATA_DIR"
-  echo " Container: windows10"
-  echo " Image: dockurr/windows (Windows 10)"
-  echo " Access via RDP -> Host: localhost | Port: 3389"
-  echo " User: Deepak | Password: sankhla"
-  echo "-------------------------------------------"
-  echo "️ Use 'docker ps' to verify container status."
-  ;;
+echo ""
+echo -e "${GREEN}✅ Windows 10 Installation complete!${NC}"
+echo "-------------------------------------------"
+echo " Docker Root Dir: $DOCKER_DATA_DIR"
+echo " Container: windows10"
+echo " Image: dockurr/windows (Windows 10)"
+echo " Access via RDP -> Host: localhost | Port: 3389"
+echo " User: Deepak | Password: sankhla"
+echo "-------------------------------------------"
+echo "️ Use 'docker ps' to verify container status."
+;;
 
 # -------------------- OPTION 2 --------------------
 2)
-  echo -e "${YELLOW}♻️ Starting existing Windows 10 container...${NC}"
-  docker compose -f windows10.yml up -d
-  ;;
+echo -e "${YELLOW}♻️ Starting existing Windows 10 container...${NC}"
+docker compose -f windows10.yml up -d
+;;
 
 # -------------------- OPTION 3 (Windows 11) --------------------
 3)
-  echo -e "${CYAN}⚙️ Starting Windows 11 installation...${NC}"
-  sleep 1
+echo -e "${CYAN}⚙️ Starting Windows 11 installation...${NC}"
+sleep 1
 
-  # --- Check storage ---
-  echo -e "${BLUE}💾 Checking available storage...${NC}"
-  df -h | grep -E "Filesystem|/tmp|/home|/"
-  sleep 1
+# Check storage
+echo -e "${BLUE}💾 Checking available storage...${NC}"
+df -h | grep -E "Filesystem|/tmp|/home|/"
+sleep 1
 
-  # --- Create Docker data folder ---
-  DOCKER_DATA_DIR="/tmp/docker-data11"
-  echo -e "${BLUE}📂 Creating Docker data folder in $DOCKER_DATA_DIR ...${NC}"
-  sudo mkdir -p "$DOCKER_DATA_DIR"
-  sudo chmod 777 "$DOCKER_DATA_DIR"
+# Create Docker data folder
+DOCKER_DATA_DIR="/tmp/docker-data11"
+echo -e "${BLUE}📂 Creating Docker data folder in $DOCKER_DATA_DIR ...${NC}"
+sudo mkdir -p "$DOCKER_DATA_DIR"
+sudo chmod 777 "$DOCKER_DATA_DIR"
 
-  # --- Configure Docker daemon ---
-  echo -e "${CYAN}🛠 Setting Docker data-root for Windows 11...${NC}"
-  sudo mkdir -p /etc/docker
-  cat <<EOF | sudo tee /etc/docker/daemon.json >/dev/null
+# Configure Docker daemon
+echo -e "${CYAN}🛠 Setting Docker data-root for Windows 11...${NC}"
+sudo mkdir -p /etc/docker
+cat <<EOF | sudo tee /etc/docker/daemon.json >/dev/null
 {
-  "data-root": "$DOCKER_DATA_DIR"
+"data-root": "$DOCKER_DATA_DIR"
 }
 EOF
 
-  # --- Restart Docker ---
-  echo -e "${YELLOW}🔁 Restarting Docker service...${NC}"
-  sudo systemctl restart docker || echo "⚠️ Could not restart Docker. Make sure it is installed."
+# Restart Docker
+echo -e "${YELLOW}🔁 Restarting Docker service...${NC}"
+sudo systemctl restart docker || echo "⚠️ Could not restart Docker."
 
-  # --- Create .env ---
-  echo -e "${CYAN}⚙️ Creating .env file for Windows 11...${NC}"
-  cat <<EOF > .env
+# Create .env
+echo -e "${CYAN}⚙️ Creating .env file for Windows 11...${NC}"
+cat <<EOF > .env
 WINDOWS_USERNAME=Deepak
 WINDOWS_PASSWORD=sankhla
 EOF
-  echo ".env" >> .gitignore
+echo ".env" >> .gitignore
 
-  # --- Create docker-compose file ---
-  echo -e "${CYAN}📄 Creating windows11.yml...${NC}"
-  cat <<'EOF' > windows11.yml
+# Create docker-compose file
+echo -e "${CYAN}📄 Creating windows11.yml...${NC}"
+cat <<'EOF' > windows11.yml
 services:
   windows:
     image: dockurr/windows
@@ -219,34 +220,107 @@ volumes:
   windows11-data:
 EOF
 
-  # --- Verify Docker ---
-  echo -e "${BLUE}🔍 Checking Docker configuration...${NC}"
-  docker info | grep "Docker Root Dir" || echo "⚠️ Could not verify Docker root dir."
+# Run container
+echo -e "${GREEN}🚀 Launching Windows 11 container in background...${NC}"
+docker compose -f windows11.yml up -d
 
-  # --- Run container ---
-  echo -e "${GREEN}🚀 Launching Windows 11 container in background...${NC}"
-  docker compose -f windows11.yml up -d
+echo ""
+echo -e "${GREEN}✅ Windows 11 Installation complete!${NC}"
+echo "-------------------------------------------"
+echo " Docker Root Dir: $DOCKER_DATA_DIR"
+echo " Container: windows11"
+echo " Image: dockurr/windows (Windows 11)"
+echo " Access via RDP -> Host: localhost | Port: 3390"
+echo " User: Deepak | Password: sankhla"
+echo "-------------------------------------------"
+echo "️ Use 'docker ps' to verify container status."
+;;
 
-  echo ""
-  echo -e "${GREEN}✅ Windows 11 Installation complete!${NC}"
-  echo "-------------------------------------------"
-  echo " Docker Root Dir: $DOCKER_DATA_DIR"
-  echo " Container: windows11"
-  echo " Image: dockurr/windows (Windows 11)"
-  echo " Access via RDP -> Host: localhost | Port: 3390"
-  echo " User: Deepak | Password: sankhla"
-  echo "-------------------------------------------"
-  echo "️ Use 'docker ps' to verify container status."
-  ;;
-
-# -------------------- OPTION 4 --------------------
+# -------------------- OPTION 4 (Windows 7) --------------------
 4)
-  echo -e "${RED}👋 Exiting installer. Goodbye!${NC}"
-  exit 0
-  ;;
+echo -e "${CYAN}⚙️ Starting Windows 7 installation...${NC}"
+sleep 1
+
+# Check storage
+echo -e "${BLUE}💾 Checking available storage...${NC}"
+df -h | grep -E "Filesystem|/tmp|/home|/"
+sleep 1
+
+# Create Docker data folder
+DOCKER_DATA_DIR="/tmp/docker-data7"
+echo -e "${BLUE}📂 Creating Docker data folder in $DOCKER_DATA_DIR ...${NC}"
+sudo mkdir -p "$DOCKER_DATA_DIR"
+sudo chmod 777 "$DOCKER_DATA_DIR"
+
+# Configure Docker daemon
+echo -e "${CYAN}🛠 Setting Docker data-root for Windows 7...${NC}"
+sudo mkdir -p /etc/docker
+cat <<EOF | sudo tee /etc/docker/daemon.json >/dev/null
+{
+"data-root": "$DOCKER_DATA_DIR"
+}
+EOF
+
+# Restart Docker
+echo -e "${YELLOW}🔁 Restarting Docker service...${NC}"
+sudo systemctl restart docker || echo "⚠️ Could not restart Docker."
+
+# Create .env
+echo -e "${CYAN}⚙️ Creating .env file for Windows 7...${NC}"
+cat <<EOF > .env
+WINDOWS_USERNAME=Deepak
+WINDOWS_PASSWORD=sankhla
+EOF
+echo ".env" >> .gitignore
+
+# Create docker-compose file
+echo -e "${CYAN}📄 Creating windows7.yml...${NC}"
+cat <<'EOF' > windows7.yml
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows7
+    environment:
+      VERSION: "7"
+      USERNAME: ${WINDOWS_USERNAME}
+      PASSWORD: ${WINDOWS_PASSWORD}
+      RAM_SIZE: "4G"
+      CPU_CORES: "4"
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8007:8006"
+      - "3379:3389/tcp"
+    volumes:
+      - /tmp/docker-data7:/mnt/disco1
+      - windows7-data:/mnt/windows-data
+    devices:
+      - "/dev/kvm:/dev/kvm"
+      - "/dev/net/tun:/dev/net/tun"
+    stop_grace_period: 2m
+    restart: always
+volumes:
+  windows7-data:
+EOF
+
+# Run container
+echo -e "${GREEN}🚀 Launching Windows 7 container in background...${NC}"
+docker compose -f windows7.yml up -d
+
+echo ""
+echo -e "${GREEN}✅ Windows 7 Installation complete!${NC}"
+echo "-------------------------------------------"
+echo " Docker Root Dir: $DOCKER_DATA_DIR"
+echo " Container: windows7"
+echo " Image: dockurr/windows (Windows 7)"
+echo " Access via RDP -> Host: localhost | Port: 3379"
+echo " User: Deepak | Password: sankhla"
+echo "-------------------------------------------"
+echo "️ Use 'docker ps' to verify container status."
+;;
 
 # -------------------- INVALID --------------------
 *)
-  echo -e "${RED}Invalid option! Please run the script again.${NC}"
-  ;;
+echo -e "${RED}Invalid option! Please run the script again.${NC}"
+;;
 esac
