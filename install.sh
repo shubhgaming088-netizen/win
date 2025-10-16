@@ -205,8 +205,8 @@ services:
     cap_add:
       - NET_ADMIN
     ports:
-      - "8011:8006"
-      - "3390:3389/tcp"
+      - "8006:8006"
+      - "3398:3389/tcp"
     volumes:
       - /tmp/docker-data11:/mnt/disco1
       - windows11-data:/mnt/windows-data
